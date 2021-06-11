@@ -18,13 +18,6 @@ class PositionalScorer(nn.Module):
         -seq_len + 1 to seq_len - 1. """
         return torch.arange(-seq_len, seq_len + 1)
 
-    def compute_gauss_scores(self, indices):
-        new_scores = self.amplitude_param.weight.unsqueeze(-1) * torch.exp(
-            -torch.abs(self.width_param.weight.unsqueeze(-1))
-            * ((self.offset_param.weight.unsqueeze(-1) - indices) ** 2)
-        )
-        return new_scores.sum(axis=0)
-
     def compute_position_scores(self, seq_len: int):
         """ Takes seq_len and outputs position scores for each relative
         distance. """
