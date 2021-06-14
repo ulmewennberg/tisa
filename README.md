@@ -1,5 +1,9 @@
 # TISA
 
+## Model
+
+The TISA model is located in `model/tisa.py`
+
 ## Figures
 
 ### Bert base uncased
