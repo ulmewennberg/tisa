@@ -13,12 +13,13 @@ class Tisa(nn.Module):
         self.kernel_offsets = nn.Parameter(
             torch.Tensor(self.num_kernels, self.num_attention_heads)
         )
-        self.kernel_widths = nn.Parameter(
-            torch.Tensor(self.num_kernels, self.num_attention_heads)
-        )
         self.kernel_amplitudes = nn.Parameter(
             torch.Tensor(self.num_kernels, self.num_attention_heads)
         )
+        self.kernel_sharpness = nn.Parameter(
+            torch.Tensor(self.num_kernels, self.num_attention_heads)
+        )
+        self._init_weights()
 
     def create_relative_offsets(self, seq_len: int):
         """Creates offsets for all the relative distances between
@@ -32,7 +33,7 @@ class Tisa(nn.Module):
         rbf_scores = (
             self.kernel_amplitudes.unsqueeze(-1)
             * torch.exp(
-                -torch.abs(self.kernel_widths.unsqueeze(-1))
+                -torch.abs(self.kernel_sharpness.unsqueeze(-1))
                 * ((self.kernel_offsets.unsqueeze(-1) - relative_offsets) ** 2)
             )
         ).sum(axis=0)
@@ -65,13 +66,15 @@ class Tisa(nn.Module):
         attention matrix in the self-attention module of transformer models."""
         if not self.num_kernels:
             return torch.zeros((self.num_attention_heads, seq_len, seq_len))
-        positional_scores_vector = self.compute_positional_scores(self.create_relative_offsets(seq_len))
+        positional_scores_vector = self.compute_positional_scores(
+            self.create_relative_offsets(seq_len)
+        )
         positional_scores_matrix = self.scores_to_toeplitz_matrix(
             positional_scores_vector, seq_len
         )
         return positional_scores_matrix
 
-    def visualize(self, seq_len: int=10, attention_heads=None):
+    def visualize(self, seq_len: int = 10, attention_heads=None):
         """Visualizes the TISA interpretability by plotting position scores as
         a function of relative distance for each attention head."""
         if attention_heads is None:
@@ -79,16 +82,28 @@ class Tisa(nn.Module):
         import matplotlib.pyplot as plt
 
         x = self.create_relative_offsets(seq_len).detach().numpy()
-        y = self.compute_positional_scores(self.create_relative_offsets(seq_len)).detach().numpy()
+        y = (
+            self.compute_positional_scores(self.create_relative_offsets(seq_len))
+            .detach()
+            .numpy()
+        )
         for i in attention_heads:
             plt.plot(x, y[i])
         plt.show()
 
+    def _init_weights(self):
+        """Initialize the weights"""
+        ampl_init_mean = 0.1
+        sharpness_init_mean = 0.1
+        torch.nn.init.normal_(self.kernel_offsets, mean=0.0, std=5.0)
+        torch.nn.init.normal_(self.kernel_amplitudes, mean=ampl_init_mean, std=0.1 * ampl_init_mean)
+        torch.nn.init.normal_(self.kernel_sharpness, mean=sharpness_init_mean, std=0.1 * sharpness_init_mean)
+
 
 def main():
-    tisa=Tisa()
-    tisa.visualize()
+    tisa = Tisa()
+    tisa.visualize(seq_len=20)
 
 
-if __name__=='__main__':
+if __name__ == "__main__":
     main()
