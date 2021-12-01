@@ -1,5 +1,23 @@
 # TISA
 
+This is the code for the article The Case for Translation-Invariant Self-Attention in Transformer-Based Language Models
+
+Please cite this article as follows:
+```
+@inproceedings{wennberg-henter-2021-case,
+    title = "The Case for Translation-Invariant Self-Attention in Transformer-Based Language Models",
+    author = "Wennberg, Ulme  and
+      Henter, Gustav Eje",
+    booktitle = "Proceedings of the 59th Annual Meeting of the Association for Computational Linguistics and the 11th International Joint Conference on Natural Language Processing (Volume 2: Short Papers)",
+    month = aug,
+    year = "2021",
+    publisher = "Association for Computational Linguistics",
+    url = "https://aclanthology.org/2021.acl-short.18",
+    doi = "10.18653/v1/2021.acl-short.18",
+    pages = "130--140"
+}
+```
+
 ## Model
 
 The TISA model is located in `model/tisa.py`
@@ -59,3 +77,5 @@ The TISA model is located in `model/tisa.py`
 
 ### KB Albert base swedish cased alpha
 <img src="figures/EpEpT/KB_albert-base-swedish-cased-alpha.png" alt="KB_albert-base-swedish-cased-alpha" class="inline"/>
+
+
