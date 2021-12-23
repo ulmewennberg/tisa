@@ -1,7 +1,6 @@
 import torch
 
 from torch import nn
-import scipy.linalg as linalg
 
 
 class Tisa(nn.Module):
@@ -44,20 +43,18 @@ class Tisa(nn.Module):
         self-attention equation. PRs with memory and/or speed optimizations are
         welcome."""
         deformed_toeplitz = (
-            torch.tensor(
-                linalg.toeplitz(
-                    range(seq_len - 1, 2 * seq_len - 1), range(seq_len)[::-1]
+            (
+                (torch.arange(0, -(seq_len ** 2), step=-1) + (seq_len - 1)).view(
+                    seq_len, seq_len
                 )
+                + (seq_len + 1) * torch.arange(seq_len).view(-1, 1)
             )
             .view(-1)
             .long()
             .to(device=positional_scores.device)
         )
-        expanded_positional_scores = torch.stack(
-            list(
-                torch.gather(positional_scores[i], 0, deformed_toeplitz)
-                for i in range(self.num_attention_heads)
-            )
+        expanded_positional_scores = torch.take_along_dim(
+            positional_scores, deformed_toeplitz.view(1, -1), 1
         ).view(self.num_attention_heads, seq_len, seq_len)
         return expanded_positional_scores
 
@@ -96,13 +93,20 @@ class Tisa(nn.Module):
         ampl_init_mean = 0.1
         sharpness_init_mean = 0.1
         torch.nn.init.normal_(self.kernel_offsets, mean=0.0, std=5.0)
-        torch.nn.init.normal_(self.kernel_amplitudes, mean=ampl_init_mean, std=0.1 * ampl_init_mean)
-        torch.nn.init.normal_(self.kernel_sharpness, mean=sharpness_init_mean, std=0.1 * sharpness_init_mean)
+        torch.nn.init.normal_(
+            self.kernel_amplitudes, mean=ampl_init_mean, std=0.1 * ampl_init_mean
+        )
+        torch.nn.init.normal_(
+            self.kernel_sharpness,
+            mean=sharpness_init_mean,
+            std=0.1 * sharpness_init_mean,
+        )
 
 
 def main():
     tisa = Tisa()
-    tisa.visualize(seq_len=20)
+
+    # tisa.visualize(seq_len=20)
 
 
 if __name__ == "__main__":
