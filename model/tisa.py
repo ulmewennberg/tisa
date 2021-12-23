@@ -105,8 +105,8 @@ class Tisa(nn.Module):
 
 def main():
     tisa = Tisa()
-
-    # tisa.visualize(seq_len=20)
+    tisa(20)
+    tisa.visualize(seq_len=20)
 
 
 if __name__ == "__main__":
